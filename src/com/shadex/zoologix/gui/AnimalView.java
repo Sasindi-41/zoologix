@@ -6,24 +6,22 @@ package com.shadex.zoologix.gui;
 
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import static com.shadex.zoologix.gui.Dashboard.feedSchedule;
+import static com.shadex.zoologix.gui.Dashboard.medicalHistory;
 import model.MySQL;
 import java.sql.ResultSet;
+import java.util.HashMap;
 import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author AT
- */
 public class AnimalView extends javax.swing.JDialog {
 
-  
-    public AnimalView(java.awt.Frame parent, boolean modal) {
+    public static HashMap<String, String> animalMap = new HashMap<>();
+    private boolean fromMH;
+    public AnimalView(java.awt.Frame parent, boolean modal,boolean fromMH) {
         super(parent, modal);
         initComponents();
         loadAnimals();
-      
-    
+        this.fromMH =fromMH;
 
     }
 
@@ -31,33 +29,32 @@ public class AnimalView extends javax.swing.JDialog {
 
         try {
 
-          ResultSet resultSet =  MySQL.executeSearch("SELECT * FROM `animal` INNER JOIN `animal_category` ON"
+            ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `animal` INNER JOIN `animal_category` ON"
                     + "`animal_category`.`id` = `animal`.`animal_category_id` INNER JOIN `country` ON"
                     + "`country`.`id` = `animal`.`country_id` INNER JOIN `gender` ON"
                     + "`gender`.`id` = `animal`.`gender_id` ");
-          
-          DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
-          dtm.setRowCount(0);
-          
-          while (resultSet.next()){
-          
-          Vector<String> vector = new Vector<>();
-          vector.add(resultSet.getString("id"));
-          vector.add(resultSet.getString("name"));
-          vector.add(resultSet.getString("biological_name"));
-          vector.add(resultSet.getString("arrived_date"));
-          vector.add(resultSet.getString("date_of_birth"));
-          vector.add(resultSet.getString("age"));
-          vector.add(resultSet.getString("animal_count"));
-          vector.add(resultSet.getString("description"));
-          vector.add(resultSet.getString("animal_category_id"));
-          vector.add(resultSet.getString("country_id"));
-          vector.add(resultSet.getString("gender_id"));
-          
-          dtm.addRow(vector);
-              
-          }
-            
+
+            DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+            dtm.setRowCount(0);
+
+            while (resultSet.next()) {
+
+                Vector<String> vector = new Vector<>();
+                vector.add(resultSet.getString("id"));
+                vector.add(resultSet.getString("name"));
+                vector.add(resultSet.getString("biological_name"));
+                vector.add(resultSet.getString("arrived_date"));
+                vector.add(resultSet.getString("date_of_birth"));
+                vector.add(resultSet.getString("age"));
+                vector.add(resultSet.getString("animal_count"));
+                vector.add(resultSet.getString("description"));
+                vector.add(resultSet.getString("animal_category_id"));
+                vector.add(resultSet.getString("country_id"));
+                vector.add(resultSet.getString("gender_id"));
+
+                dtm.addRow(vector);
+
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -235,18 +232,24 @@ public class AnimalView extends javax.swing.JDialog {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-      int row = jTable1.getSelectedRow();
-        
-        if (evt.getClickCount() == 2){
-      
-          String id = String.valueOf(jTable1.getValueAt(row, 0));
-          
-          feedSchedule.setId(id);
-          this.dispose();
-          
-          feedSchedule.setAnimalId(String.valueOf(jTable1.getValueAt(row, 1)));
-          
-      }
+
+        if (evt.getClickCount() == 2) {
+            int row = jTable1.getSelectedRow();
+            if (row != -1) {
+
+                String id = String.valueOf(jTable1.getValueAt(row, 0));
+                
+                if (fromMH == true) {
+                    medicalHistory.setAnimalId(id);
+                }else{
+                     feedSchedule.setId(id);
+                }
+
+                
+                this.dispose();
+            }
+
+        }
     }//GEN-LAST:event_jTable1MouseClicked
 
     /**

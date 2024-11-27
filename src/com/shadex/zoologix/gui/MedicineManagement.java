@@ -4,6 +4,11 @@
  */
 package com.shadex.zoologix.gui;
 
+import model.MySQL;
+import java.sql.ResultSet;
+import java.util.Vector;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 public class MedicineManagement extends javax.swing.JPanel {
 
@@ -11,6 +16,32 @@ public class MedicineManagement extends javax.swing.JPanel {
     public MedicineManagement(Dashboard dashboard1) {
         initComponents();
         this.dashboard = dashboard1;
+        loadMedicine();
+    }
+    
+    private void loadMedicine(){
+    
+    try{
+        
+       ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `medicine`");
+    
+       DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+       dtm.setRowCount(0);
+       
+       while(resultSet.next()){
+       
+       Vector<String> vector = new Vector<>();
+       vector.add(resultSet.getString("id"));
+       vector.add(resultSet.getString("name"));
+       
+       dtm.addRow(vector);
+           
+       }
+       
+    }catch(Exception e){
+    e.printStackTrace();
+    }
+        
     }
 
     /**
@@ -83,12 +114,22 @@ public class MedicineManagement extends javax.swing.JPanel {
         jButton3.setForeground(new java.awt.Color(1, 50, 32));
         jButton3.setText("Update");
         jButton3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32), 2));
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setBackground(new java.awt.Color(188, 184, 138));
         jButton4.setFont(new java.awt.Font("Candara", 1, 16)); // NOI18N
         jButton4.setForeground(new java.awt.Color(1, 50, 32));
         jButton4.setText("Reset");
         jButton4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32), 2));
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -255,6 +296,11 @@ public class MedicineManagement extends javax.swing.JPanel {
             }
         });
         jTable1.getTableHeader().setReorderingAllowed(false);
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -354,8 +400,61 @@ public class MedicineManagement extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+       String id = jTextField1.getText();
+       String name = jTextField2.getText();
+       
+        if (id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the id", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the name", "Warning", JOptionPane.WARNING_MESSAGE);
+        }else {
+        
+            try {
+                
+                MySQL.executeIUD("INSERT INTO `medicine` (`id`,`name`) VALUES ('"+id+"','"+name+"')");
+                loadMedicine();
+                            reset();
+
+            }catch(Exception e){
+            e.printStackTrace();
+            }
+        
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+     String id = jTextField1.getText();
+       String name = jTextField2.getText();
+       
+        if (id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the id", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the name", "Warning", JOptionPane.WARNING_MESSAGE);
+        }else {
+        
+            try {
+                
+                MySQL.executeIUD("UPDATE `medicine` SET `id` = '"+id+"' , `name` = '"+name+"'");
+            
+                loadMedicine();
+                reset();
+            }catch(Exception e){
+            e.printStackTrace();
+            }
+        
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+  int row = jTable1.getSelectedRow();
+  
+  jTextField1.setText(String.valueOf(jTable1.getValueAt(row, 0)));
+  jTextField2.setText(String.valueOf(jTable1.getValueAt(row, 1)));
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+     reset();
+    }//GEN-LAST:event_jButton4ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -386,4 +485,10 @@ public class MedicineManagement extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     // End of variables declaration//GEN-END:variables
+
+    private void reset() {
+      jTextField1.setText("");
+      jTextField2.setText("");
+      jTable1.clearSelection();
+    }
 }

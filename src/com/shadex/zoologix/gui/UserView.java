@@ -5,6 +5,11 @@
 package com.shadex.zoologix.gui;
 
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
+import static com.shadex.zoologix.gui.Dashboard.feedSchedule;
+import model.MySQL;
+import java.sql.ResultSet;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -18,6 +23,43 @@ public class UserView extends javax.swing.JDialog {
     public UserView(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        loadUser();
+    }
+    
+    private void loadUser(){
+    
+        try {
+            
+           ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `user` INNER JOIN `usertype` ON"
+                    + "`user`.`usertype_id` = `usertype`.`id` INNER JOIN `userstatus` ON"
+                    + "`userstatus`.`id` = `user`.`userstatus_id` INNER JOIN `gender` ON"
+                    + "`gender`.`id` = `user`.`gender_id` INNER JOIN `department` ON"
+                    + "`department`.`department_id` = `user`.`department_department_id`");
+            
+            DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+            dtm.setRowCount(0);
+            
+            while (resultSet.next()){
+            
+            Vector<String> vector = new Vector<>();
+            vector.add(resultSet.getString("id"));
+            vector.add(resultSet.getString("fname"));
+            vector.add(resultSet.getString("lname"));
+            vector.add(resultSet.getString("mobile"));
+            vector.add(resultSet.getString("email"));
+            vector.add(resultSet.getString("usertype_id"));
+            vector.add(resultSet.getString("userstatus_id"));
+            vector.add(resultSet.getString("gender_id"));
+            vector.add(resultSet.getString("department_department_id"));
+            
+            dtm.addRow(vector);
+            }
+            
+        
+        }catch(Exception e){
+        e.printStackTrace();
+        }
+    
     }
 
     /**
@@ -130,6 +172,11 @@ public class UserView extends javax.swing.JDialog {
             }
         });
         jTable1.getTableHeader().setReorderingAllowed(false);
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -182,6 +229,34 @@ public class UserView extends javax.swing.JDialog {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+    int row = jTable1.getSelectedRow();
+    
+    if(evt.getClickCount() == 2){
+    
+        String id = String.valueOf(jTable1.getValueAt(row, 0));
+      
+        
+        feedSchedule.userId(id);
+        this.dispose();
+        
+       
+       
+        
+    }
+    if(evt.getClickCount() == 1){
+    
+       
+        String userId = String.valueOf(jTable1.getValueAt(row, 0));
+        
+      
+        this.dispose();
+        
+    }
+    
+    
+    }//GEN-LAST:event_jTable1MouseClicked
 
     /**
      * @param args the command line arguments

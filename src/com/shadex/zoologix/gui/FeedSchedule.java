@@ -4,27 +4,143 @@
  */
 package com.shadex.zoologix.gui;
 
+import model.MySQL;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Vector;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import java.sql.SQLIntegrityConstraintViolationException;
+
+
 /**
  *
  * @author AT
  */
 public class FeedSchedule extends javax.swing.JPanel {
 
-    private String animalId;
-    
-    public void setAnimalId(String animalId) {
-    this.animalId = animalId;
-   
+    public void setId(String id) {
+        jTextField1.setText(id);
+    }
+
+    public void foodId(String id) {
+        jTextField2.setText(id);
+    }
+
+    public void medicineId(String id) {
+        jTextField3.setText(id);
+    }
+
+    public void userId(String id) {
+        jTextField4.setText(id);
     }
     
-    public void setId(String id){
-    jTextField1.setText(id);
-    }
-    
-  private Dashboard dashboard;
+     
+
+    public static HashMap<String, String> venueMap = new HashMap<>();
+
+    private Dashboard dashboard;
+
     public FeedSchedule(Dashboard dashboard1) {
         initComponents();
-         this.dashboard = dashboard1;
+        this.dashboard = dashboard1;
+        loadVenue();
+        loadFeedSchedule();
+        jTextField4.setEditable(false);
+    }
+
+//    private void loadFeedSchedule() {
+//
+//        try {
+//
+//            ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `feed_shedule` INNER JOIN `animal` ON"
+//                    + "`animal`.`id` = `feed_shedule`.`animal_id` INNER JOIN `venue` ON"
+//                    + "`venue`.`id` = `feed_shedule`.`venue_id` INNER JOIN `food` ON"
+//                    + "`food`.`id` = `feed_shedule`.`food_id` INNER JOIN `medicine` ON"
+//                    + "`medicine`.`id` = `feed_shedule`.`medicine_id` INNER JOIN `user` ON"
+//                    + "`user`.`id` = `feed_shedule`.`user_id`");
+//
+//            DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+//            dtm.setRowCount(0);
+//
+//            while (resultSet.next()) {
+//
+//                Vector<String> vector = new Vector<>();
+//                vector.add(resultSet.getString("id"));
+//                vector.add(resultSet.getString("date"));
+//                vector.add(resultSet.getString("animal.name"));
+//                vector.add(resultSet.getString("venue.venue"));
+//                vector.add(resultSet.getString("food.name"));
+//                vector.add(resultSet.getString("medicine.name"));
+//                vector.add(resultSet.getString("description"));
+//                vector.add(resultSet.getString("user.username"));
+//
+//                dtm.addRow(vector);
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+
+    private void loadFeedSchedule() {
+    try {
+        ResultSet resultSet = MySQL.executeSearch(
+            "SELECT feed_shedule.id, feed_shedule.date, animal.name AS animal_name, " +
+            "venue.venue, food.name AS food_name, medicine.name AS medicine_name, " +
+            "feed_shedule.description, user.username " +
+            "FROM feed_shedule " +
+            "INNER JOIN animal ON feed_shedule.animal_id = animal.id " +
+            "INNER JOIN venue ON feed_shedule.venue_id = venue.id " +
+            "INNER JOIN food ON feed_shedule.food_id = food.id " +
+            "INNER JOIN medicine ON feed_shedule.medicine_id = medicine.id " +
+            "INNER JOIN user ON feed_shedule.user_id = user.id"
+        );
+
+        DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+        dtm.setRowCount(0);
+
+        while (resultSet.next()) {
+            Vector<String> vector = new Vector<>();
+            vector.add(resultSet.getString("id"));
+            vector.add(resultSet.getString("date"));
+            vector.add(resultSet.getString("animal_name"));
+            vector.add(resultSet.getString("venue"));
+            vector.add(resultSet.getString("food_name"));
+            vector.add(resultSet.getString("medicine_name"));
+            vector.add(resultSet.getString("description"));
+            vector.add(resultSet.getString("username"));
+            dtm.addRow(vector);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+    public void loadVenue() {
+
+        try {
+
+            ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `venue`");
+
+            Vector<String> vector = new Vector<>();
+            vector.add("SELECT");
+
+            while (resultSet.next()) {
+                vector.add(resultSet.getString("venue"));
+                venueMap.put(resultSet.getString("venue"), resultSet.getString("id"));
+            }
+
+            jComboBox1.setModel(new DefaultComboBoxModel<>(vector));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -165,17 +281,32 @@ public class FeedSchedule extends javax.swing.JPanel {
         jButton5.setForeground(new java.awt.Color(255, 255, 255));
         jButton5.setText("Add");
         jButton5.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32)));
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
         jButton6.setFont(new java.awt.Font("Candara", 1, 18)); // NOI18N
         jButton6.setForeground(new java.awt.Color(1, 50, 32));
         jButton6.setText("Update");
         jButton6.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32), 2));
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
 
         jButton7.setBackground(new java.awt.Color(188, 184, 138));
         jButton7.setFont(new java.awt.Font("Candara", 1, 18)); // NOI18N
         jButton7.setForeground(new java.awt.Color(1, 50, 32));
         jButton7.setText("Reset");
         jButton7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32), 2));
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -297,11 +428,11 @@ public class FeedSchedule extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Date", "Animal ID", "Venue", "Food ID", "Medicine ID", "Description", "User ID"
+                "ID", "Date", "Animal ID", "Venue", "Food ID", "Medicine ID", "Description", "User ID"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -309,6 +440,11 @@ public class FeedSchedule extends javax.swing.JPanel {
             }
         });
         jTable1.getTableHeader().setReorderingAllowed(false);
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -403,24 +539,207 @@ public class FeedSchedule extends javax.swing.JPanel {
     }//GEN-LAST:event_jTextField2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-      AnimalView animalView = new AnimalView(null, true);
-      animalView.setVisible(true);
+        AnimalView animalView = new AnimalView(null, true,false);
+        animalView.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-      FoodView foodView = new FoodView(null, true);
-      foodView.setVisible(true);
+        FoodView foodView = new FoodView(null, true);
+        foodView.setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-     MedicineView medicineView = new MedicineView(null, true);
-     medicineView.setVisible(true);
+        MedicineView medicineView = new MedicineView(null, true);
+        medicineView.setVisible(true);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-      UserView userView = new UserView(null, true);
-      userView.setVisible(true);
+        UserView userView = new UserView(null, true);
+        userView.setVisible(true);
     }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        String dt = new SimpleDateFormat("YYYY-MM-dd").format(new Date());
+        String animalId = jTextField1.getText();
+        String venue = String.valueOf(jComboBox1.getSelectedItem());
+        String foodId = jTextField2.getText();
+        String medicineId = jTextField3.getText();
+        String description = jTextArea1.getText();
+        String userId = jTextField4.getText();
+
+        if (dt.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please choose the Date", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (animalId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a animal", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (foodId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select food", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (userId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select the user", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (venue.equals("SELECT")) {
+            JOptionPane.showMessageDialog(this, "Please select a venue", "Warning", JOptionPane.WARNING_MESSAGE);
+        }
+        {
+
+            try {
+
+                MySQL.executeIUD("INSERT INTO `feed_shedule`(`date`, `animal_id`,`venue_id` , `food_id`, `medicine_id`, `description`, `user_id`) "
+                        + "VALUES ('" + dt + "','" + animalId + "','" + venueMap.get(venue) + "','" + foodId + "','" + medicineId + "','" + description + "','" + userId + "') ");
+
+                loadFeedSchedule();
+                reset();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+
+        int row = jTable1.getSelectedRow();
+
+        String id = String.valueOf(jTable1.getValueAt(row, 0));
+        jTextField1.setText(id);
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String dateString = String.valueOf(jTable1.getValueAt(row, 1));
+            Date dt = sdf.parse(dateString);
+            jDateChooser1.setDate(dt);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String animalId = String.valueOf(jTable1.getValueAt(row, 2));
+        jTextField1.setText(animalId);
+
+        String venue = String.valueOf(jTable1.getValueAt(row, 3));
+        jComboBox1.setSelectedItem(venue);
+
+        String foodId = String.valueOf(jTable1.getValueAt(row, 4));
+        jTextField2.setText(foodId);
+
+        String medicineId = String.valueOf(jTable1.getValueAt(row, 5));
+        jTextField3.setText(medicineId);
+
+        String des = String.valueOf(jTable1.getValueAt(row, 6));
+        jTextArea1.setText(des);
+
+        String userId = String.valueOf(jTable1.getValueAt(row, 7));
+        jTextField4.setText(userId);
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+//        int row = jTable1.getSelectedRow();
+//        
+//        if (row != -1) {
+//            String dt = new SimpleDateFormat("YYYY-MM-dd").format(new Date());
+//            String animalId = jTextField1.getText();
+//            String venue = String.valueOf(jComboBox1.getSelectedItem());
+//            String foodId = jTextField2.getText();
+//            String medicineId = jTextField3.getText();
+//            String description = jTextArea1.getText();
+//
+//            if (animalId.isEmpty()) {
+//                JOptionPane.showMessageDialog(this, "Please select a animal", "Warning", JOptionPane.WARNING_MESSAGE);
+//            } else if (foodId.isEmpty()) {
+//                JOptionPane.showMessageDialog(this, "Please select food", "Warning", JOptionPane.WARNING_MESSAGE);
+//            } else if (venue.equals("SELECT")) {
+//                JOptionPane.showMessageDialog(this, "Please select a venue", "Warning", JOptionPane.WARNING_MESSAGE);
+//            } else {
+//                int id = Integer.parseInt(String.valueOf(jTable1.getValueAt(row, 0)));
+//                try {
+//
+//                    MySQL.executeIUD("UPDATE `feed_shedule` SET `date` = '" + dt + "',`animal_id` = '" + AnimalView.animalMap.get(animalId) + "' , `venue_id` = '" + venueMap.get(venue) + "' , "
+//                            + "`food_id` = '" + FoodView.foodMap.get(foodId) + "' , `medicine_id` = '" + MedicineView.medicineMap.get(medicineId) + "', `description` = '" + description + "' "
+//                            + "WHERE `feed_shedule`.`id` = '" +id + "' ");
+//
+//                    loadFeedSchedule();
+//                    reset();
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }
+//        }else{
+//        JOptionPane.showMessageDialog(this,"Please Select Row","Warning",JOptionPane.WARNING_MESSAGE);
+//        }
+
+
+ int row = jTable1.getSelectedRow();
+    
+    if (row != -1) {
+        String dt = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        String animalId = jTextField1.getText();
+        String venue = String.valueOf(jComboBox1.getSelectedItem());
+        String foodId = jTextField2.getText();
+        String medicineId = jTextField3.getText();
+        String description = jTextArea1.getText();
+
+        if (animalId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select an animal", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        } 
+        if (foodId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select food", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        } 
+        if (venue.equals("SELECT")) {
+            JOptionPane.showMessageDialog(this, "Please select a venue", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Validate if the animal ID, venue, food, and medicine exist in the respective maps
+        if (!AnimalView.animalMap.containsKey(animalId)) {
+            JOptionPane.showMessageDialog(this, "Invalid Animal ID", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (!venueMap.containsKey(venue)) {
+            JOptionPane.showMessageDialog(this, "Invalid Venue", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (!FoodView.foodMap.containsKey(foodId)) {
+            JOptionPane.showMessageDialog(this, "Invalid Food ID", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (!MedicineView.medicineMap.containsKey(medicineId)) {
+            JOptionPane.showMessageDialog(this, "Invalid Medicine ID", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Get the ID of the selected row
+        int id = Integer.parseInt(String.valueOf(jTable1.getValueAt(row, 0)));
+        
+        try {
+            // Update query
+            String query = "UPDATE `feed_shedule` SET " +
+                           "`date` = '" + dt + "', " +
+                           "`animal_id` = '" + AnimalView.animalMap.get(animalId) + "', " +
+                           "`venue_id` = '" + venueMap.get(venue) + "', " +
+                           "`food_id` = '" + FoodView.foodMap.get(foodId) + "', " +
+                           "`medicine_id` = '" + MedicineView.medicineMap.get(medicineId) + "', " +
+                           "`description` = '" + description + "' " +
+                           "WHERE `feed_shedule`.`id` = '" + id + "'";
+            MySQL.executeIUD(query);
+
+            // Reload table and reset fields
+            loadFeedSchedule();
+            reset();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    } else {
+        JOptionPane.showMessageDialog(this, "Please select a row", "Warning", JOptionPane.WARNING_MESSAGE);
+    }
+
+
+
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+        reset();
+    }//GEN-LAST:event_jButton7ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -456,7 +775,13 @@ public class FeedSchedule extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField4;
     // End of variables declaration//GEN-END:variables
 
-    void setHospitalId(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    private void reset() {
+        jTextField1.setText("");
+        jTextField2.setText("");
+        jTextField3.setText("");
+        jTextField4.setText("");
+        jTextArea1.setText("");
+        jComboBox1.setSelectedIndex(0);
+        jTable1.clearSelection();
     }
 }

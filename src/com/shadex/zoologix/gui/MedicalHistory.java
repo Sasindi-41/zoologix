@@ -10,12 +10,25 @@ package com.shadex.zoologix.gui;
  */
 public class MedicalHistory extends javax.swing.JPanel {
 
+    public void setFeedScheduleId (String id){
+     jTextField3.setText(id);
+     }
+    
+     public void setUserId(String userId) {
+        jTextField1.setText(userId);
+    }
+    
    private Dashboard dashboard;
     public MedicalHistory(Dashboard dashboard1) {
         initComponents();
         this.dashboard = dashboard1;
     }
 
+     public void setAnimalId(String id) {
+        jTextField1.setText(id);
+    }
+     
+     
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -334,7 +347,7 @@ public class MedicalHistory extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-       AnimalView animalView = new AnimalView(null, true);
+       AnimalView animalView = new AnimalView(null, true,true);
        animalView.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 

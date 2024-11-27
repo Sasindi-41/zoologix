@@ -5,6 +5,12 @@
 package com.shadex.zoologix.gui;
 
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
+import static com.shadex.zoologix.gui.Dashboard.medicalHistory;
+import javax.swing.table.DefaultTableModel;
+import model.MySQL;
+import java.sql.ResultSet;
+import java.util.Vector;
+import javax.swing.JPanel;
 
 /**
  *
@@ -12,12 +18,47 @@ import com.formdev.flatlaf.themes.FlatMacLightLaf;
  */
 public class FeedScheduleView extends javax.swing.JDialog {
 
-    /**
-     * Creates new form FeedScheduleView
-     */
     public FeedScheduleView(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        loadFeedSchedule();
+
+    }
+
+    private void loadFeedSchedule() {
+
+        try {
+
+            ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `feed_shedule` INNER JOIN `venue` ON"
+                    + "`venue`.`id` = `feed_shedule`.`venue_id` INNER JOIN `food` ON"
+                    + "`food`.`id` = `feed_shedule`.`food_id` INNER JOIN `medicine` ON"
+                    + "`medicine`.`id` = `feed_shedule`.`medicine_id` INNER JOIN `user` ON"
+                    + "`user`.`id` = `feed_shedule`.`user_id` INNER JOIN `animal` ON"
+                    + "`animal`.`id` = `feed_shedule`.`animal_id`");
+
+            DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+            dtm.setRowCount(0);
+
+            while (resultSet.next()) {
+
+                Vector<String> vector = new Vector<>();
+                vector.add(resultSet.getString("id"));
+                vector.add(resultSet.getString("date"));
+                vector.add(resultSet.getString("venue_id"));
+                vector.add(resultSet.getString("food_id"));
+                vector.add(resultSet.getString("medicine_id"));
+                vector.add(resultSet.getString("description"));
+                vector.add(resultSet.getString("user_id"));
+                vector.add(resultSet.getString("animal_id"));
+
+                dtm.addRow(vector);
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -41,7 +82,6 @@ public class FeedScheduleView extends javax.swing.JDialog {
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(800, 600));
 
         jPanel1.setBackground(new java.awt.Color(1, 50, 32));
 
@@ -64,6 +104,11 @@ public class FeedScheduleView extends javax.swing.JDialog {
             }
         });
         jTable1.getTableHeader().setReorderingAllowed(false);
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -185,10 +230,24 @@ public class FeedScheduleView extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+
+        if (evt.getClickCount() == 2) {
+            int row = jTable1.getSelectedRow();
+            if (row != -1) {
+                String id = String.valueOf(jTable1.getValueAt(row, 0));
+
+                medicalHistory.setFeedScheduleId(id);
+
+                this.dispose();
+            }
+
+        }
+    }//GEN-LAST:event_jTable1MouseClicked
+
     /**
      * @param args the command line arguments
      */
-  
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

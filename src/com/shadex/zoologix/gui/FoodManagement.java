@@ -4,16 +4,146 @@
  */
 package com.shadex.zoologix.gui;
 
+import model.MySQL;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Vector;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author AT
  */
 public class FoodManagement extends javax.swing.JPanel {
 
-   private Dashboard dashboard;
+    private Dashboard dashboard;
+
     public FoodManagement(Dashboard dashboard1) {
         initComponents();
         this.dashboard = dashboard1;
+        loadFood();
+        loadFoodStock();
+    }
+
+    private void loadFood() {
+
+        try {
+
+            ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `food`");
+
+            DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+            dtm.setRowCount(0);
+
+            while (resultSet.next()) {
+
+                Vector<String> vector = new Vector<>();
+                vector.add(resultSet.getString("id"));
+                vector.add(resultSet.getString("name"));
+
+                dtm.addRow(vector);
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void loadFoodStock() {
+
+        try {
+
+            String query = "SELECT * FROM `food_stock` INNER JOIN `food` "
+                    + "ON `food`.`id` = `food_stock`.`food_id`";
+
+            int row = jTable1.getSelectedRow();
+
+            if (row != -1) {
+
+                String fid = String.valueOf(jTable1.getValueAt(row, 0));
+                query += "WHERE `food_stock`.`food_id` = '" + fid + "'";
+            }
+            
+         
+            if (query.contains("WHERE")) {
+                query += "AND ";
+
+            } else {
+                query += "WHERE ";
+            }
+
+            double min_price = 0;
+            double max_price = 0;
+
+            //exp
+            Date start = null;
+            Date end = null;
+
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+            if (jDateChooser1.getDate() != null) {
+
+                start = jDateChooser1.getDate();
+                query += "`food_stock`.`exp` > '" + format.format(start) + "' AND";
+
+            }
+            if (jDateChooser2.getDate() != null) {
+
+                end = jDateChooser2.getDate();
+                query += "`food_stock`.`exp` < '" + format.format(end) + "'";
+            }
+            
+            String sort = String.valueOf(jComboBox1.getSelectedItem());
+            
+            query += "ORDER BY ";
+            
+            query = query.replace("WHERE ORDER BY ", "ORDER BY ");
+            query = query.replace("AND ORDER BY ", "ORDER BY ");
+            
+            
+            
+            if (sort.equals("Food Stock ID ASC")){
+                query += "`food_stock`.`id` ASC";
+            } else  if (sort.equals("Food Stock ID DESC")){
+                query += "`food_stock`.`id` DESC";
+            } else  if (sort.equals("Food ID ASC")){
+                query += "`food`.`id` ASC";
+            }else if (sort.equals("Food ID DESC")){
+                query += "`food`.`id` DESC";
+            } else if (sort.equals("Food Name ASC")){
+                query += "`food`.`name` ASC";
+            } else if (sort.equals("Food Name DESC")){
+                query += "`food`.`name` DESC";
+            } else  if (sort.equals("Quantity ASC")){
+                query += "`food_stock`.`qty` ASC";
+            } else  if (sort.equals("Quantity DESC")){
+                query += "`food_stock`.`qty` DESC";
+            } 
+
+            ResultSet resultSet = MySQL.executeSearch(query);
+
+            DefaultTableModel model = (DefaultTableModel) jTable2.getModel();
+            model.setRowCount(0);
+
+            while (resultSet.next()) {
+                Vector<String> vector = new Vector<>();
+                vector.add(resultSet.getString("food_stock.id"));
+                vector.add(resultSet.getString("food.id"));
+                vector.add(resultSet.getString("food.name"));
+                vector.add(resultSet.getString("qty"));
+                vector.add(resultSet.getString("mfd"));
+                vector.add(resultSet.getString("exp"));
+
+                model.addRow(vector);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -47,6 +177,7 @@ public class FoodManagement extends javax.swing.JPanel {
         jDateChooser2 = new com.toedter.calendar.JDateChooser();
         jButton2 = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
+        jButton7 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jButton5 = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
@@ -86,12 +217,22 @@ public class FoodManagement extends javax.swing.JPanel {
         jButton3.setForeground(new java.awt.Color(1, 50, 32));
         jButton3.setText("Update");
         jButton3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32), 2));
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setBackground(new java.awt.Color(188, 184, 138));
         jButton4.setFont(new java.awt.Font("Candara", 1, 16)); // NOI18N
         jButton4.setForeground(new java.awt.Color(1, 50, 32));
         jButton4.setText("Reset");
         jButton4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32), 2));
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -151,6 +292,11 @@ public class FoodManagement extends javax.swing.JPanel {
             }
         });
         jTable1.getTableHeader().setReorderingAllowed(false);
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -171,11 +317,11 @@ public class FoodManagement extends javax.swing.JPanel {
 
             },
             new String [] {
-                "ID", "Food ID", "Qty", "MFD", "EXP"
+                "ID", "Food ID", "Food Name", "Qty", "MFD", "EXP"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
+                false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -190,8 +336,13 @@ public class FoodManagement extends javax.swing.JPanel {
         jLabel3.setText("Sort By :");
 
         jComboBox1.setFont(new java.awt.Font("Candara", 1, 14)); // NOI18N
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Food Stock ID ASC", "Food Stock ID DESC", "Food ID ASC", "Food ID DESC", "Food Name ASC", "Food Name DESC", "Quantity ASC", "Quantity DESC" }));
         jComboBox1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32)));
+        jComboBox1.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBox1ItemStateChanged(evt);
+            }
+        });
 
         jLabel4.setFont(new java.awt.Font("Candara", 1, 16)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(1, 50, 32));
@@ -209,10 +360,22 @@ public class FoodManagement extends javax.swing.JPanel {
         jButton2.setForeground(new java.awt.Color(1, 50, 32));
         jButton2.setText("FIND");
         jButton2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(1, 50, 32)));
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jLabel6.setFont(new java.awt.Font("Candara", 1, 28)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(1, 50, 32));
         jLabel6.setText("Stock");
+
+        jButton7.setText("Clear");
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -220,27 +383,30 @@ public class FoodManagement extends javax.swing.JPanel {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane2)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGap(33, 33, 33)
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGap(47, 47, 47)
-                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
+                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(92, 92, 92))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)))
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel5Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jDateChooser2, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE))))
                 .addContainerGap(42, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
@@ -257,17 +423,18 @@ public class FoodManagement extends javax.swing.JPanel {
                         .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGap(37, 37, 37)
+                        .addGap(14, 14, 14)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jDateChooser2, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 404, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
@@ -335,7 +502,7 @@ public class FoodManagement extends javax.swing.JPanel {
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(92, Short.MAX_VALUE))
+                .addContainerGap(98, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -357,8 +524,85 @@ public class FoodManagement extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String id = jTextField1.getText();
+        String name = jTextField2.getText();
 
+        if (id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the id", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the name", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else {
+
+            try {
+
+                MySQL.executeIUD("INSERT INTO `food` (`id`,`name`) VALUES ('" + id + "','" + name + "')");
+
+                loadFood();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        int row = jTable1.getSelectedRow();
+
+        String id = jTextField1.getText();
+        String name = jTextField2.getText();
+
+        if (id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the id", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the name", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else {
+
+            try {
+
+                ResultSet resultSet = MySQL.executeSearch("SELECT * FROM `food` WHERE `id` = '" + id + "' AND `name` = '" + name + "' ");
+
+                if (resultSet.next()) {
+                    JOptionPane.showMessageDialog(this, "food id or name already used", "Warning", JOptionPane.WARNING_MESSAGE);
+                } else {
+
+                    MySQL.executeIUD("UPDATE `food` SET `id` = '" + id + "', `name` = '" + name + "'");
+                    reset();
+
+                    loadFood();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int row = jTable1.getSelectedRow();
+
+        jTextField1.setText(String.valueOf(jTable1.getValueAt(row, 0)));
+        jTextField2.setText(String.valueOf(jTable1.getValueAt(row, 1)));
+
+        loadFoodStock();
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        reset();
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        loadFoodStock();
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jComboBox1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBox1ItemStateChanged
+        loadFoodStock();
+    }//GEN-LAST:event_jComboBox1ItemStateChanged
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+      jDateChooser1.setDate(null);
+      jDateChooser2.setDate(null);
+      
+      loadFoodStock();
+    }//GEN-LAST:event_jButton7ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -368,6 +612,7 @@ public class FoodManagement extends javax.swing.JPanel {
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
+    private javax.swing.JButton jButton7;
     private javax.swing.JComboBox<String> jComboBox1;
     private com.toedter.calendar.JDateChooser jDateChooser1;
     private com.toedter.calendar.JDateChooser jDateChooser2;
@@ -389,4 +634,10 @@ public class FoodManagement extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     // End of variables declaration//GEN-END:variables
+
+    private void reset() {
+        jTextField1.setText("");
+        jTextField2.setText("");
+        jTable1.clearSelection();
+    }
 }

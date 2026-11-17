@@ -1,0 +1,38 @@
+
+# NetBeans private configuration
+/nbproject/private/
+
+# Generated build output
+/build/
+/dist/
+
+# Java compiled files
+*.class
+
+# Application logs
+*.log
+*.log.*
+*.lck
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# IDE files
+.idea/
+*.iml
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment and private configuration
+.env
+.env.*
+!.env.example
+
+# Local database credentials
+/db.properties
